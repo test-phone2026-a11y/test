@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Assistant - مختبر القوة المستقبلي 2050</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.11.4/gsap.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #00ff9d;
+            --secondary: #00a8ff;
+            --accent: #ff2d75;
+            --dark: #0a0a1a;
+            --darker: #050510;
+            --light: #e0f7fa;
+            --neon: #00ff9d;
+            --neon-blue: #00a8ff;
+            --neon-pink: #ff2d75;
+            --glow: 0 0 10px currentColor, 0 0 20px currentColor;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 50%, #0f1a2e 100%);
+            color: var(--light);
+            min-height: 100vh;
+            direction: rtl;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        body::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 80%, rgba(0, 255, 157, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0, 168, 255, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 40% 40%, rgba(255, 45, 117, 0.03) 0%, transparent 50%);
+            z-index: -1;
+        }
+
+        .grid-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(90deg, rgba(0, 168, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(0deg, rgba(0, 168, 255, 0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .scanlines {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, 
+                transparent 50%, 
+                rgba(0, 0, 0, 0.1) 50%);
+            background-size: 100% 4px;
+            pointer-events: none;
+            z-index: 999;
+            opacity: 0.3;
+        }
+
+        header {
+            background: rgba(10, 10, 26, 0.9);
+            backdrop-filter: blur(20px);
+            padding: 2rem;
+            text-align: center;
+            border-bottom: 1px solid rgba(0, 255, 157, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+
+        header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--neon), transparent);
+            animation: headerGlow 3s infinite;
+        }
+
+        @keyframes headerGlow {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        h1 {
+            color: transparent;
+            font-size: 3.5rem;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(45deg, var(--neon), var(--neon-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            text-shadow: var(--glow);
+            position: relative;
+            display: inline-block;
+        }
+
+        .subtitle {
+            color: rgba(224, 247, 250, 0.8);
+            font-size: 1.3rem;
+            margin-top: 0.5rem;
+            font-weight: 300;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .section {
+            margin-bottom: 3rem;
+            position: relative;
+        }
+
+        .section-title {
+            font-size: 2rem;
+            color: var(--neon);
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+        }
+
+        .section-title i {
+            color: var(--neon-blue);
+        }
+
+        .test-area {
+            background: rgba(10, 10, 26, 0.6);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(0, 255, 157, 0.1);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+
+        #render-container {
+            width: 100%;
+            height: 500px;
+            background: 
+                radial-gradient(circle at center, rgba(0, 255, 157, 0.05) 0%, transparent 70%),
+                linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%);
+            border-radius: 15px;
+            margin: 2rem 0;
+            overflow: hidden;
+            position: relative;
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            box-shadow: 
+                inset 0 0 30px rgba(0, 0, 0, 0.5),
+                0 0 40px rgba(0, 255, 157, 0.1);
+        }
+
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 1.5rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            background: linear-gradient(45deg, rgba(0, 255, 157, 0.1), rgba(0, 168, 255, 0.1));
+            color: var(--light);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            padding: 15px 30px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            backdrop-filter: blur(10px);
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 157, 0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .btn:hover::before {
+            left: 100%;
+        }
+
+        .btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 5px 20px rgba(0, 255, 157, 0.3);
+            border-color: var(--neon);
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn-primary {
+            background: linear-gradient(45deg, rgba(0, 255, 157, 0.2), rgba(0, 168, 255, 0.2));
+            border-color: var(--neon);
+        }
+
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 2rem;
+            margin-top: 2rem;
+        }
+
+        .result-card {
+            background: linear-gradient(135deg, rgba(0, 255, 157, 0.1), rgba(0, 168, 255, 0.05));
+            color: white;
+            padding: 2rem;
+            border-radius: 15px;
+            border: 1px solid rgba(0, 255, 157, 0.2);
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .result-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, transparent, rgba(255, 255, 255, 0.03), transparent);
+            z-index: 0;
+        }
+
+        .result-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 255, 157, 0.2);
+        }
+
+        .result-card > * {
+            position: relative;
+            z-index: 1;
+        }
+
+        .stars {
+            font-size: 2.2rem;
+            color: var(--neon);
+            margin: 1.5rem 0;
+            letter-spacing: 8px;
+            text-shadow: var(--glow);
+        }
+
+        .percentage {
+            font-size: 4rem;
+            font-weight: bold;
+            margin: 1.5rem 0;
+            background: linear-gradient(45deg, var(--neon), var(--neon-blue));
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+            text-shadow: 0 0 20px rgba(0, 255, 157, 0.3);
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .detail-item {
+            padding: 1.5rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border-right: 3px solid var(--neon);
+            transition: all 0.3s ease;
+            border: 1px solid rgba(0, 255, 157, 0.1);
+        }
+
+        .detail-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+            transform: translateX(-5px);
+            border-color: var(--neon);
+        }
+
+        .fps-counter {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            background: rgba(0, 0, 0, 0.7);
+            color: var(--neon);
+            padding: 8px 20px;
+            border-radius: 8px;
+            font-family: 'Courier New', monospace;
+            z-index: 100;
+            border: 1px solid var(--neon);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+            font-size: 1.1rem;
+        }
+
+        .performance-meter {
+            height: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            margin: 15px 0;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 157, 0.2);
+        }
+
+        .performance-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon), var(--neon-blue));
+            border-radius: 6px;
+            width: 0%;
+            transition: width 1s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+        }
+
+        .floating-elements {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+
+        .floating-element {
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            background: rgba(0, 255, 157, 0.05);
+            border-radius: 50%;
+            animation: float 20s infinite linear;
+            border: 1px solid rgba(0, 255, 157, 0.1);
+        }
+
+        @keyframes float {
+            0% {
+                transform: translateY(0) translateX(0) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(-100vh) translateX(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        .advanced-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .stat-item {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            border: 1px solid rgba(0, 255, 157, 0.1);
+            transition: all 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+            border-color: var(--neon);
+            box-shadow: 0 5px 15px rgba(0, 255, 157, 0.2);
+        }
+
+        .stat-value {
+            font-size: 2.2rem;
+            font-weight: bold;
+            color: var(--neon);
+            margin-bottom: 0.5rem;
+            text-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+        }
+
+        .stat-label {
+            font-size: 1rem;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .complexity-controls {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin: 1.5rem 0;
+            flex-wrap: wrap;
+        }
+
+        .complexity-btn {
+            padding: 12px 25px;
+            background: rgba(0, 255, 157, 0.1);
+            border: 1px solid rgba(0, 255, 157, 0.3);
+            color: var(--light);
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .complexity-btn.active {
+            background: rgba(0, 255, 157, 0.3);
+            border-color: var(--neon);
+            box-shadow: 0 0 15px rgba(0, 255, 157, 0.3);
+        }
+
+        .complexity-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .loading-bar {
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            margin: 15px 0;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 157, 0.2);
+        }
+
+        .loading-progress {
+            height: 100%;
+            background: linear-gradient(90deg, var(--neon), var(--neon-blue));
+            border-radius: 3px;
+            width: 0%;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(0, 255, 157, 0.5);
+        }
+
+        .test-status {
+            text-align: center;
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 8px;
+            font-weight: bold;
+        }
+
+        .test-running {
+            background: rgba(0, 255, 157, 0.2);
+            color: var(--neon);
+            border: 1px solid var(--neon);
+        }
+
+        .test-completed {
+            background: rgba(0, 168, 255, 0.2);
+            color: var(--neon-blue);
+            border: 1px solid var(--neon-blue);
+        }
+
+        @media (max-width: 768px) {
+            h1 { font-size: 2.5rem; }
+            .subtitle { font-size: 1.1rem; }
+            #render-container { height: 350px; }
+            .controls { flex-direction: column; }
+            .btn { width: 100%; justify-content: center; }
+            .section-title { font-size: 1.7rem; }
+            .results-grid { grid-template-columns: 1fr; }
+            .test-area { padding: 1.5rem; }
+        }
+
+        .info-text {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="scanlines"></div>
+    <div class="grid-overlay"></div>
+    <div class="floating-elements" id="floatingElements"></div>
+
+    <header>
+        <h1><i class="fas fa-robot"></i> Smart Assistant Ismail</h1>
+        <div class="subtitle">مختبر القوة المستقبلي 2050 - اختبار أداء متطور</div>
+    </header>
+
+    <div class="container">
+        <section class="section">
+            <h2 class="section-title"><i class="fas fa-cube"></i> اختبار الرسومات المستقبلي</h2>
+            <p class="info-text">اختبر قدرة جهازك على معالجة الرسومات المعقدة من المستقبل. حرك المجسم ثلاثي الأبعاد لقياس أداء جهازك الحقيقي.</p>
+            
+            <div class="test-area">
+                <div id="render-container">
+                    <div class="fps-counter">FPS: <span id="fps">0</span></div>
+                    <div class="loading-bar">
+                        <div class="loading-progress" id="loadingProgress"></div>
+                    </div>
+                </div>
+
+                <div class="test-status" id="testStatus" style="display: none;"></div>
+
+                <div class="complexity-controls">
+                    <div class="complexity-btn active" data-level="1">مستوى بسيط</div>
+                    <div class="complexity-btn" data-level="2">مستوى متوسط</div>
+                    <div class="complexity-btn" data-level="3">مستوى متقدم</div>
+                    <div class="complexity-btn" data-level="4">مستوى مستقبلي</div>
+                </div>
+
+                <div class="controls">
+                    <button class="btn btn-primary" id="startTest">
+                        <i class="fas fa-play"></i> بدء الاختبار
+                    </button>
+                    <button class="btn" id="loadComplexScene">
+                        <i class="fas fa-atom"></i> تحميل مشهد معقد
+                    </button>
+                    <button class="btn" id="stressTest">
+                        <i class="fas fa-bolt"></i> اختبار الضغط
+                    </button>
+                    <button class="btn" id="resetTest">
+                        <i class="fas fa-redo"></i> إعادة الاختبار
+                    </button>
+                </div>
+
+                <div class="advanced-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="trianglesCount">0</div>
+                        <div class="stat-label">المثلثات</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="texturesCount">0</div>
+                        <div class="stat-label">القوام</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="lightsCount">0</div>
+                        <div class="stat-label">مصادر الضوء</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="objectsCount">0</div>
+                        <div class="stat-label">الكائنات</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title"><i class="fas fa-chart-line"></i> نتائج اختبار الأداء</h2>
+            
+            <div class="results-grid">
+                <div class="result-card">
+                    <h3>التقييم العام</h3>
+                    <div class="stars" id="stars">☆☆☆☆☆</div>
+                    <div class="percentage" id="percentage">0%</div>
+                    <p>أداء جهازك المستقبلي</p>
+                    <div class="performance-meter">
+                        <div class="performance-fill" id="performanceFill"></div>
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3>معدل الإطارات</h3>
+                    <div class="percentage" id="fpsResult">0</div>
+                    <p>إطار في الثانية</p>
+                    <div class="performance-meter">
+                        <div class="performance-fill" id="fpsFill"></div>
+                    </div>
+                </div>
+                
+                <div class="result-card">
+                    <h3>درجة السلاسة</h3>
+                    <div class="percentage" id="smoothness">0%</div>
+                    <p>استقرار الأداء</p>
+                    <div class="performance-meter">
+                        <div class="performance-fill" id="smoothnessFill"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="section">
+            <h2 class="section-title"><i class="fas fa-microchip"></i> تحليل تفصيلي للأداء</h2>
+            
+            <div class="details-grid" id="deviceDetails">
+                <!-- سيتم ملء هذا القسم بالبيانات تلقائيا -->
+            </div>
+            
+            <div class="advanced-stats">
+                <div class="stat-item">
+                    <div class="stat-value" id="cpuScore">0</div>
+                    <div class="stat-label">أداء المعالج</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="gpuScore">0</div>
+                    <div class="stat-label">أداء الرسومات</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="memoryScore">0</div>
+                    <div class="stat-label">أداء الذاكرة</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-value" id="storageScore">0</div>
+                    <div class="stat-label">أداء التخزين</div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        // الكود الأساسي للرسومات ثلاثية الأبعاد
+        let scene, camera, renderer;
+        let frameCount = 0;
+        let lastTime = performance.now();
+        let fps = 0;
+        let isRunning = false;
+        let animationId;
+        let currentComplexity = 1;
+        let testObjects = [];
+        let stats = {
+            triangles: 0,
+            textures: 0,
+            lights: 0,
+            objects: 0
+        };
+
+        // متغيرات جديدة للنتائج الثابتة
+        let finalResults = {
+            performancePercentage: 0,
+            fps: 0,
+            smoothness: 0,
+            stars: "☆☆☆☆☆",
+            isTestCompleted: false
+        };
+
+        // عناصر DOM
+        const fpsElement = document.getElementById('fps');
+        const fpsResultElement = document.getElementById('fpsResult');
+        const percentageElement = document.getElementById('percentage');
+        const starsElement = document.getElementById('stars');
+        const smoothnessElement = document.getElementById('smoothness');
+        const deviceDetailsElement = document.getElementById('deviceDetails');
+        const renderContainer = document.getElementById('render-container');
+        const loadingProgress = document.getElementById('loadingProgress');
+        const performanceFill = document.getElementById('performanceFill');
+        const fpsFill = document.getElementById('fpsFill');
+        const smoothnessFill = document.getElementById('smoothnessFill');
+        const testStatus = document.getElementById('testStatus');
+        
+        // عناصر الإحصائيات
+        const trianglesCount = document.getElementById('trianglesCount');
+        const texturesCount = document.getElementById('texturesCount');
+        const lightsCount = document.getElementById('lightsCount');
+        const objectsCount = document.getElementById('objectsCount');
+        const cpuScore = document.getElementById('cpuScore');
+        const gpuScore = document.getElementById('gpuScore');
+        const memoryScore = document.getElementById('memoryScore');
+        const storageScore = document.getElementById('storageScore');
+
+        // إنشاء العناصر العائمة
+        function createFloatingElements() {
+            const container = document.getElementById('floatingElements');
+            for (let i = 0; i < 12; i++) {
+                const element = document.createElement('div');
+                element.className = 'floating-element';
+                element.style.left = Math.random() * 100 + 'vw';
+                element.style.animationDelay = Math.random() * 20 + 's';
+                element.style.width = Math.random() * 40 + 20 + 'px';
+                element.style.height = element.style.width;
+                element.style.background = `rgba(0, 255, 157, ${Math.random() * 0.05 + 0.02})`;
+                container.appendChild(element);
+            }
+        }
+
+        // تهيئة المشهد ثلاثي الأبعاد
+        function initThreeJS() {
+            const width = renderContainer.clientWidth;
+            const height = renderContainer.clientHeight;
+
+            // إنشاء المشهد
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x0a0a1a);
+            scene.fog = new THREE.Fog(0x0a0a1a, 10, 50);
+
+            // إنشاء الكاميرا
+            camera = new THREE.PerspectiveCamera(75, width / height, 0.1, 1000);
+            camera.position.set(0, 3, 8);
+
+            // إنشاء العارض
+            renderer = new THREE.WebGLRenderer({ 
+                antialias: true,
+                alpha: true
+            });
+            renderer.setSize(width, height);
+            renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            
+            renderContainer.appendChild(renderer.domElement);
+
+            // إضاءة مستقبلية
+            setupFutureLighting();
+
+            // إنشاء النموذج الأساسي
+            createModel(currentComplexity);
+        }
+
+        // إعداد إضاءة مستقبلية
+        function setupFutureLighting() {
+            // ضوء اتجاهي رئيسي
+            const directionalLight = new THREE.DirectionalLight(0x00ff9d, 1);
+            directionalLight.position.set(5, 10, 5);
+            directionalLight.castShadow = true;
+            scene.add(directionalLight);
+
+            // ضوء بيئي
+            const ambientLight = new THREE.AmbientLight(0x00a8ff, 0.3);
+            scene.add(ambientLight);
+
+            // أضواء نقطية مستقبلية
+            const pointLight1 = new THREE.PointLight(0x00ff9d, 0.7, 15);
+            pointLight1.position.set(3, 3, 3);
+            scene.add(pointLight1);
+
+            const pointLight2 = new THREE.PointLight(0xff2d75, 0.5, 15);
+            pointLight2.position.set(-3, 2, -3);
+            scene.add(pointLight2);
+            
+            stats.lights = 4;
+            updateStats();
+        }
+
+        // إنشاء نموذج ثلاثي الأبعاد مستقبلي
+        function createModel(complexity) {
+            currentComplexity = complexity;
+            
+            // إزالة النماذج القديمة إذا كانت موجودة
+            testObjects.forEach(obj => scene.remove(obj));
+            testObjects = [];
+            stats.triangles = 0;
+            stats.objects = 0;
+            stats.textures = 0;
+
+            // تحديث شريط التقدم
+            loadingProgress.style.width = '0%';
+            let progress = 0;
+            const totalSteps = complexity * 4;
+            const progressStep = 100 / totalSteps;
+
+            // إنشاء أرضية مستقبلية
+            const floorGeometry = new THREE.PlaneGeometry(20, 20, 64, 64);
+            const floorMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x00a8ff,
+                roughness: 0.3,
+                metalness: 0.7,
+                wireframe: true
+            });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.receiveShadow = true;
+            scene.add(floor);
+            testObjects.push(floor);
+            stats.triangles += floorGeometry.attributes.position.count / 3;
+            stats.objects++;
+            
+            progress += progressStep;
+            loadingProgress.style.width = progress + '%';
+
+            // إنشاء هيكل مركزي مستقبلي
+            createCentralStructure(complexity);
+            progress += progressStep;
+            loadingProgress.style.width = progress + '%';
+
+            // إنشاء عناصر مستقبلية إضافية
+            if (complexity >= 2) {
+                createFloatingOrbs(complexity * 2);
+                progress += progressStep;
+                loadingProgress.style.width = progress + '%';
+            }
+
+            // إنشاء جسيمات مستقبلية
+            if (complexity >= 3) {
+                createFutureParticles(complexity * 10);
+                progress += progressStep;
+                loadingProgress.style.width = progress + '%';
+            }
+
+            // تحديث الإحصائيات
+            updateStats();
+            loadingProgress.style.width = '100%';
+        }
+
+        // إنشاء هيكل مركزي مستقبلي
+        function createCentralStructure(complexity) {
+            // هيكل حلزوني رئيسي
+            const mainGeometry = new THREE.TorusKnotGeometry(
+                1.5, 
+                0.4, 
+                complexity * 50, 
+                complexity * 8
+            );
+            const mainMaterial = new THREE.MeshStandardMaterial({ 
+                color: 0x00ff9d,
+                roughness: 0.2,
+                metalness: 0.8,
+                emissive: 0x00ff9d,
+                emissiveIntensity: 0.3
+            });
+            const mainStructure = new THREE.Mesh(mainGeometry, mainMaterial);
+            mainStructure.castShadow = true;
+            scene.add(mainStructure);
+            testObjects.push(mainStructure);
+            stats.triangles += mainGeometry.attributes.position.count / 3;
+            stats.objects++;
+
+            // كرات عائمة حول الهيكل
+            for (let i = 0; i < complexity * 2; i++) {
+                const orbGeometry = new THREE.SphereGeometry(0.2 + complexity * 0.1, 16, 16);
+                const orbMaterial = new THREE.MeshStandardMaterial({ 
+                    color: i % 2 === 0 ? 0x00a8ff : 0xff2d75,
+                    roughness: 0.1,
+                    metalness: 0.9,
+                    emissive: i % 2 === 0 ? 0x00a8ff : 0xff2d75,
+                    emissiveIntensity: 0.5
+                });
+                const orb = new THREE.Mesh(orbGeometry, orbMaterial);
+                
+                const angle = (i / (complexity * 2)) * Math.PI * 2;
+                const radius = 2 + complexity * 0.5;
+                orb.position.set(
+                    Math.cos(angle) * radius,
+                    Math.sin(angle * 2) * 0.5,
+                    Math.sin(angle) * radius
+                );
+                
+                orb.castShadow = true;
+                scene.add(orb);
+                testObjects.push(orb);
+                stats.triangles += orbGeometry.attributes.position.count / 3;
+                stats.objects++;
+            }
+        }
+
+        // إنشاء كرات عائمة
+        function createFloatingOrbs(count) {
+            for (let i = 0; i < count; i++) {
+                const orbGeometry = new THREE.SphereGeometry(0.3, 32, 32);
+                const orbMaterial = new THREE.MeshStandardMaterial({ 
+                    color: Math.random() > 0.5 ? 0x00ff9d : 0xff2d75,
+                    roughness: 0.1,
+                    metalness: 0.8,
+                    transparent: true,
+                    opacity: 0.8
+                });
+                const orb = new THREE.Mesh(orbGeometry, orbMaterial);
+                orb.position.set(
+                    (Math.random() - 0.5) * 10,
+                    Math.random() * 5 + 2,
+                    (Math.random() - 0.5) * 10
+                );
+                orb.castShadow = true;
+                scene.add(orb);
+                testObjects.push(orb);
+                stats.triangles += orbGeometry.attributes.position.count / 3;
+                stats.objects++;
+            }
+        }
+
+        // إنشاء جسيمات مستقبلية
+        function createFutureParticles(count) {
+            const particlesGeometry = new THREE.BufferGeometry();
+            const positions = new Float32Array(count * 3);
+            const colors = new Float32Array(count * 3);
+
+            for (let i = 0; i < count * 3; i += 3) {
+                positions[i] = (Math.random() - 0.5) * 20;
+                positions[i + 1] = (Math.random() - 0.5) * 10;
+                positions[i + 2] = (Math.random() - 0.5) * 20;
+
+                colors[i] = Math.random() > 0.5 ? 0.0 : 1.0;     // R
+                colors[i + 1] = Math.random() > 0.5 ? 0.65 : 0.0; // G
+                colors[i + 2] = Math.random() > 0.5 ? 1.0 : 0.0;  // B
+            }
+
+            particlesGeometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            particlesGeometry.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+
+            const particlesMaterial = new THREE.PointsMaterial({
+                size: 0.1,
+                vertexColors: true,
+                transparent: true,
+                opacity: 0.8
+            });
+
+            const particles = new THREE.Points(particlesGeometry, particlesMaterial);
+            scene.add(particles);
+            testObjects.push(particles);
+            stats.objects++;
+        }
+
+        // تحريك النماذج
+        function animate() {
+            if (!isRunning) return;
+
+            animationId = requestAnimationFrame(animate);
+
+            frameCount++;
+            const currentTime = performance.now();
+            if (currentTime >= lastTime + 1000) {
+                fps = Math.round((frameCount * 1000) / (currentTime - lastTime));
+                frameCount = 0;
+                lastTime = currentTime;
+                
+                fpsElement.textContent = fps;
+                
+                // تحديث النتائج في الوقت الحقيقي فقط أثناء الاختبار
+                if (!finalResults.isTestCompleted) {
+                    updateRealTimeResults();
+                }
+            }
+
+            // تحريك النماذج المستقبلية
+            testObjects.forEach((obj, index) => {
+                if (obj.geometry.type === 'TorusKnotGeometry') {
+                    obj.rotation.x += 0.01 * currentComplexity;
+                    obj.rotation.y += 0.005 * currentComplexity;
+                } else if (obj.geometry.type === 'SphereGeometry') {
+                    obj.rotation.y += 0.02 * currentComplexity;
+                    obj.position.y = Math.sin(currentTime * 0.001 + index) * 0.2 + obj.position.y;
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        // تحديث النتائج في الوقت الحقيقي (فقط أثناء الاختبار)
+        function updateRealTimeResults() {
+            // حساب النسبة المئوية بناءً على معدل FPS
+            let maxFps = 60;
+            let performancePercentage = Math.min(100, Math.round((fps / maxFps) * 100));
+            
+            // حساب النجوم
+            let starsCount = Math.ceil(performancePercentage / 20);
+            let stars = '★'.repeat(starsCount) + '☆'.repeat(5 - starsCount);
+            
+            // حساب السلاسة بناءً على تقلبات FPS
+            let smoothness = Math.max(70, 100 - (60 - fps) * 2);
+            
+            // تحديث العناصر في الوقت الحقيقي
+            percentageElement.textContent = performancePercentage + '%';
+            fpsResultElement.textContent = fps;
+            starsElement.textContent = stars;
+            smoothnessElement.textContent = Math.min(100, smoothness) + '%';
+            
+            // تحديث أشرطة التقدم
+            performanceFill.style.width = performancePercentage + '%';
+            fpsFill.style.width = Math.min(100, (fps / 60) * 100) + '%';
+            smoothnessFill.style.width = smoothness + '%';
+            
+            // تحديث نتائج المعالج والرسومات
+            updateAdvancedScores(performancePercentage);
+        }
+
+        // حفظ النتائج النهائية
+        function saveFinalResults() {
+            let maxFps = 60;
+            finalResults.performancePercentage = Math.min(100, Math.round((fps / maxFps) * 100));
+            finalResults.fps = fps;
+            
+            // حساب النجوم النهائية
+            let starsCount = Math.ceil(finalResults.performancePercentage / 20);
+            finalResults.stars = '★'.repeat(starsCount) + '☆'.repeat(5 - starsCount);
+            
+            // حساب السلاسة النهائية
+            finalResults.smoothness = Math.max(70, 100 - (60 - fps) * 2);
+            finalResults.isTestCompleted = true;
+            
+            // تطبيق النتائج النهائية
+            applyFinalResults();
+            
+            // تحديث تفاصيل الجهاز
+            updateDeviceDetails(finalResults.performancePercentage);
+        }
+
+        // تطبيق النتائج النهائية
+        function applyFinalResults() {
+            percentageElement.textContent = finalResults.performancePercentage + '%';
+            fpsResultElement.textContent = finalResults.fps;
+            starsElement.textContent = finalResults.stars;
+            smoothnessElement.textContent = Math.min(100, finalResults.smoothness) + '%';
+            
+            performanceFill.style.width = finalResults.performancePercentage + '%';
+            fpsFill.style.width = Math.min(100, (finalResults.fps / 60) * 100) + '%';
+            smoothnessFill.style.width = finalResults.smoothness + '%';
+            
+            updateAdvancedScores(finalResults.performancePercentage);
+        }
+
+        // إعادة تعيين الاختبار
+        function resetTest() {
+            finalResults = {
+                performancePercentage: 0,
+                fps: 0,
+                smoothness: 0,
+                stars: "☆☆☆☆☆",
+                isTestCompleted: false
+            };
+            
+            // إعادة تعيين النتائج على الشاشة
+            percentageElement.textContent = "0%";
+            fpsResultElement.textContent = "0";
+            starsElement.textContent = "☆☆☆☆☆";
+            smoothnessElement.textContent = "0%";
+            
+            performanceFill.style.width = "0%";
+            fpsFill.style.width = "0%";
+            smoothnessFill.style.width = "0%";
+            
+            // إعادة تعيين الإحصائيات
+            cpuScore.textContent = "0";
+            gpuScore.textContent = "0";
+            memoryScore.textContent = "0";
+            storageScore.textContent = "0";
+            
+            // إعادة تعيين حالة الاختبار
+            testStatus.style.display = 'none';
+            document.getElementById('startTest').disabled = false;
+        }
+
+        // تحديث نتائج الأداء المتقدمة
+        function updateAdvancedScores(performancePercentage) {
+            const complexityFactor = currentComplexity / 4;
+            const baseScore = performancePercentage * complexityFactor;
+            
+            cpuScore.textContent = Math.round(baseScore * 0.9);
+            gpuScore.textContent = Math.round(baseScore * 1.1);
+            memoryScore.textContent = Math.round(baseScore * 0.8);
+            storageScore.textContent = Math.round(baseScore * 0.7);
+        }
+
+        // تحديث الإحصائيات
+        function updateStats() {
+            trianglesCount.textContent = stats.triangles.toLocaleString();
+            texturesCount.textContent = stats.textures;
+            lightsCount.textContent = stats.lights;
+            objectsCount.textContent = stats.objects;
+        }
+
+        // تحديث تفاصيل الجهاز
+        function updateDeviceDetails(performancePercentage) {
+            const details = [
+                { name: 'أداء الرسومات', value: performancePercentage + '%' },
+                { name: 'معدل الإطارات', value: finalResults.fps + ' FPS' },
+                { name: 'تعقيد المشهد', value: getComplexityText(currentComplexity) },
+                { name: 'دقة الشاشة', value: window.screen.width + ' × ' + window.screen.height },
+                { name: 'نسبة البكسل', value: window.devicePixelRatio },
+                { name: 'ذاكرة الوصول العشوائي', value: navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'غير معروف' },
+                { name: 'المعالج', value: navigator.hardwareConcurrency + ' نواة' },
+                { name: 'نظام التشغيل', value: navigator.platform },
+                { name: 'المتصفح', value: navigator.userAgent.split(') ')[0].split('(')[1] || 'غير معروف' },
+                { name: 'اللغة', value: navigator.language },
+                { name: 'الوقت', value: new Date().toLocaleTimeString() },
+                { name: 'الذاكرة المستخدمة', value: (performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) : 'غير معروف') + ' MB' }
+            ];
+
+            deviceDetailsElement.innerHTML = details.map(detail => 
+                `<div class="detail-item">
+                    <strong>${detail.name}:</strong> ${detail.value}
+                </div>`
+            ).join('');
+        }
+
+        // الحصول على نص تعقيد المشهد
+        function getComplexityText(complexity) {
+            const texts = ['', 'بسيط', 'متوسط', 'متقدم', 'مستقبلي'];
+            return texts[complexity] || 'غير معروف';
+        }
+
+        // إعادة حجم العارض عند تغيير حجم النافذة
+        function onWindowResize() {
+            if (!camera || !renderer) return;
+            
+            const width = renderContainer.clientWidth;
+            const height = renderContainer.clientHeight;
+            
+            camera.aspect = width / height;
+            camera.updateProjectionMatrix();
+            renderer.setSize(width, height);
+        }
+
+        // بدء الاختبار
+        function startTest() {
+            isRunning = true;
+            if (!renderer) {
+                initThreeJS();
+            }
+            animate();
+            
+            // تعطيل زر البدء
+            document.getElementById('startTest').disabled = true;
+            
+            // عرض حالة الاختبار
+            testStatus.textContent = 'جاري اختبار أداء الجهاز...';
+            testStatus.className = 'test-status test-running';
+            testStatus.style.display = 'block';
+            
+            // حفظ النتائج بعد 5 ثوانٍ (مدة الاختبار)
+            setTimeout(() => {
+                saveFinalResults();
+                testStatus.textContent = 'تم الانتهاء من الاختبار بنجاح!';
+                testStatus.className = 'test-status test-completed';
+            }, 5000);
+        }
+
+        // مستمعي الأحداث
+        document.getElementById('startTest').addEventListener('click', startTest);
+
+        document.getElementById('loadComplexScene').addEventListener('click', function() {
+            createModel(4);
+        });
+
+        document.getElementById('stressTest').addEventListener('click', function() {
+            createModel(4);
+            // محاكاة حمل إضافي
+            for (let i = 0; i < 3; i++) {
+                setTimeout(() => createFloatingOrbs(5), i * 1000);
+            }
+        });
+
+        document.getElementById('resetTest').addEventListener('click', function() {
+            resetTest();
+        });
+
+        // مستمعي أحداث مستويات التعقيد
+        document.querySelectorAll('.complexity-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.complexity-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentComplexity = parseInt(this.dataset.level);
+                createModel(currentComplexity);
+            });
+        });
+
+        // إعداد المستمعين النهائيين
+        window.addEventListener('resize', onWindowResize);
+
+        // تهيئة أولية لتفاصيل الجهاز
+        updateDeviceDetails(0);
+        
+        // إنشاء العناصر العائمة
+        createFloatingElements();
+    </script>
+</body>
+</html>
